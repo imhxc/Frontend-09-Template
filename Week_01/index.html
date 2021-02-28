@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicTacToe</title>
+  <style>
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: green;
+      display: inline-block;
+      border: 1px solid #fff;
+      vertical-align: middle;
+      line-height: 100px;
+      font-size: 50px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id='board'></div>
+
+  <script>
+    // 棋盘抽象数据结构
+    let pattern = [
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0
+    ]
+    let color = 1
+
+    /**
+     * 绘制棋盘
+     */
+    function show() {
+      const board = document.getElementById('board')
+      board.innerHTML = ''
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          const cell = document.createElement('div')
+          cell.classList.add('cell')
+          cell.innerHTML = pattern[i * 3 + j] === 2 ? '❌' : pattern[i * 3 + j] === 1 ? '⭕️' : ''
+          cell.addEventListener('click', () => userMove(j, i))
+          board.appendChild(cell)
+        }
+        board.appendChild(document.createElement('br')) // 换行，即在页面中一行渲染完成后，开始渲染下一行
+      }
+    }
+     // 用户落子
+     function userMove(x, y) {
+      pattern[y * 3 + x] = color
+      if (check(pattern, color)) {
+        alert(color == 2 ? '❌ is winner!' : '⭕ is winner!')
+      }
+      color = 3 - color
+      show()
+      computerMove()
+    }
+    // 电脑落子
+    function computerMove() {
+      let choice = bestChoice(pattern, color)
+      if (choice.point) {
+        pattern[choice.point[1] * 3 + choice.point[0]] = color
+      }
+      if (check(pattern, color)) {
+        alert(color == 2 ? '❌ is winner!' : '⭕ is winner!')
+      }
+      color = 3 - color
+      show()
+    }
+    function willWin(pattern, color) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j] !== 0) {
+            continue
+          }
+          let tmp = Object.create(pattern)
+          tmp[i * 3 + j] = color
+          if (check(tmp, color)) {
+            return [j, i]
+          }
+        }
+      }
+      return null
+    }
+
+    /** 
+     * AI 选择最好步骤
+     * 这里采取胜负剪支差，即找到一个可以赢的点就停止查找，换句话说，就是保证可以赢，但是不保证赢得更多
+     */
+    function bestChoice(pattern, color) {
+      let point = willWin(pattern, color);
+      if (point) {
+        return {
+          point: point,
+          result: 1
+        }
+      }
+      let result = -1;
+      outer: for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j] !== 0) {
+            continue;
+          }
+          let tmp = Object.create(pattern)
+          tmp[i * 3 + j] = color;
+          let opp = bestChoice(tmp, 3 - color)
+          if (-opp.result >= result) {
+            result = -opp.result
+            point = [j, i]
+          }
+          if (result == 1) {
+            break outer
+          }
+        }
+      }
+      return {
+        point: point,
+        result: point ? result : 0
+      }
+    }
+
+    function check(pattern, color) {
+      // 先判断每一行 ，共 3 行
+      for (let i = 0; i < 3; i++) {
+        let win = true
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j] !== color) {
+            win = false
+          }
+        }
+        if (win) return true
+      }
+      // 检查3个列
+      for (let i = 0; i < 3; i++) {
+        let win = true;
+        for (let j = 0; j < 3; j++) {
+          if (pattern[j * 3 + i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 判断 2 斜
+      { // 花括号提供了局部作用域
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i * 3 + 2 - i] !== color) win = false
+        }
+        if (win) return true
+      }
+      {
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i * 3 + i] !== color) win = false
+        }
+        if (win) return true
+      }
+      return false
+    }
+
+
+
+    show(pattern)
+  </script>
+</body>
+
+</html>
