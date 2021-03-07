@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻路算法</title>
+  <style>
+    .cell {
+      display: inline-block;
+      line-height: 7px;
+      width: 6px;
+      height: 6px;
+      background-color: #999;
+      border-bottom: solid 1px white;
+      border-right: solid 1px white;
+      vertical-align: middle;
+      user-select: none; /* 防止在某些浏览器下出现可拖拽的情况 */
+    }
+    #container {
+      width: 701px;
+      line-height: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id='container'></div>
+  <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+  <button onclick="localStorage.clear(); location.reload()">clear</button>
+  <button onclick="findPath(map, [0,0], [50,50])">start</button>
+  <script>
+    class Sorted {
+      constructor (data, compare) {
+        this.data = data.slice()
+        this.compare = compare || ((a, b) => a - b);
+      }
+      // 需要保证 take 的时候能拿到最小的
+      take () {
+        if (!this.data.length) {
+          return
+        }
+        let min = this.data[0]
+        let minIndex = 0
+
+        for (let i = 1; i < this.data.length; i++) {
+          if (this.compare(this.data[i], min) < 0) {
+            min = this.data[i]
+            minIndex = i
+          }
+        }
+        // 希望使用 O(1) 的操作
+        this.data[minIndex] = this.data[this.data.length - 1]
+        this.data.pop()
+        return min
+      }
+
+      give (v) {
+        this.data.push(v)
+      }
+    }
+
+    // 地图容器
+    const container = document.getElementById('container')
+    // 地图数据，localStorage[key] 也是被允许的使用方式
+    const map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0)
+
+    let mousedown = false
+    let clear = false
+    container.addEventListener('mousedown', e => {
+      console.log(e)
+      mousedown = true
+      clear = (e.which === 3)
+    })
+    container.addEventListener('mouseup', () => mousedown = false)
+    container.addEventListener('contextmenu', e => e.preventDefault())
+
+    function sleep (t) {
+      return new Promise (function (resolve) {
+        setTimeout(resolve, t)
+      })
+    }
+    
+    function distance (point, end) {
+      return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2
+    }
+
+    
+    // 地图、起点、终点
+    async function findPath (map, start, end) {
+      const table = Object.create(map)
+      let queue = new Sorted([start], (a, b) => distance(a, end) - distance(b, end))
+      console.log(queue)
+      async function insert (x, y, pre) {
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+          return
+        }
+        // 已走过、或者已存在墙，则不走
+        if (table[y * 100 + x]) {
+          return
+        }
+        // await sleep(10)
+        // await console.log('y * 100 + x: ', y * 100 + x)
+        container.children[y * 100 + x].style.backgroundColor = 'lightgreen'
+        table[y * 100 + x] = pre
+        queue.give([x, y])
+      }
+
+      while (queue.data.length) {
+        // shift 删除并返回数组的第一个元素，配合前面的 push，遵循先进先出原则
+        // 相反的，如果使用 push 和 pop ，就会遵循先进后出原则，变成了深度优先搜索
+        let [x, y] = queue.take()
+        if (x === end[0] && y === end[1]) {
+          let path = []
+
+          while (x !== start[0] || y !== start[1]) {
+            path.push(map[y * 100 + x]);
+            [x, y] = table[y * 100 + x];
+            await sleep(30);
+            container.children[y * 100 + x].style.backgroundColor = 'purple'
+          }
+          return path
+        }
+        await insert(x - 1, y, [x, y])
+        await insert(x, y - 1, [x, y])
+        await insert(x + 1, y, [x, y])
+        await insert(x, y + 1, [x, y])
+
+        await insert(x - 1, y - 1, [x, y])
+        await insert(x + 1, y - 1, [x, y])
+        await insert(x - 1, y + 1, [x, y])
+        await insert(x + 1, y + 1, [x, y])
+      }
+      return null
+    }
+
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x++) {
+        const cell = document.createElement('div')
+        cell.classList.add('cell')
+        // y = 0 x = 0 r: map[0]
+        // y = 0, x = 1 r: map[1]
+        const subPoint = [100 * y + x]
+        if (map[subPoint] === 1) {
+          // 即 cell 格子的值为 1 的时候，则填充为黑色
+          cell.style.backgroundColor = 'black'
+        }
+
+        // 给 cell 添加 mousemove 事件，用于鼠标移动绘制路径
+        cell.addEventListener('mousemove', () => {
+          if (mousedown) {
+            if (clear) {
+              cell.style.backgroundColor = undefined
+              map[subPoint] = 0
+            } else {
+              cell.style.backgroundColor = 'black'
+              map[subPoint] = 1
+            }
+          }
+        })
+        container.appendChild(cell)
+      }
+    }
+  </script>
+</body>
+</html>
