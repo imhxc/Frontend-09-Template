@@ -298,6 +298,14 @@ splice 是 O(N) 操作。
 
 ### localStorage
 
+localStorage 的存取方式有多种，除了标准推荐的 `getItem/setItem` 之外，还有以下方式：
+````
+localStorage['name'] = 'isaac'
+localStorage.age' = 18
+
+console.log(localStorage.name)
+console.log(localStorage.['age'])
+```` 
 
 ## 参考 DEMO
 
