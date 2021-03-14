@@ -139,7 +139,7 @@ function findPaht (map, start, end) {
   }
 
   // 循环处理 queue，遵循先进先出原则
-  while (queue.lenght) {
+  while (queue.length) {
     let [x, y] = queue.shift();
     if (x === end[0] && y === end[1]) { // 已经到达终点
       return true;
