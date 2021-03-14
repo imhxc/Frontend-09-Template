@@ -66,7 +66,7 @@ LL 算法是语法分析中的一种算法，出了 LL 语法分析算法，还�
 3. Whitespace
 4. LineTerminator
 
-其中，后两种属于无意义的字符，因为空格和换行都是为了美观和可读性，真正有意义的输入元素里面（有意义的称为 token），是前两者。
+其中，后两种属于无意义的字符，因为空格和换行都是为了美观和可读性，真正有意义的输入元素(token)，是前两者。
 
 > 同时注意，TokenNumber 是支持小数点的。  
 
@@ -140,7 +140,7 @@ AdditiveExpression = MultiplicativeExpression + MultiplicativeExpression
 
 当程序拿到一个 AdditiveExpression 后，找到的第一个 symbol，可能是一个 MultiplicativeExpression ，也可能是一个 AdditiveExpression。
 
-> symbol 即字符，在这里查找 symbol 就是查找表达式。虽然上面的 <AdditiveExpression> 有三种可能，但是综合来看，第一个 symbol 只有两种情况，因为第 2、3 种可能开头的字符都是 <AdditiveExpression>。  
+> symbol 即字符，在这里查找 symbol 就是查找表达式。虽然上面的 `<AdditiveExpression>` 有三种可能，但是综合来看，第一个 symbol 只有两种情况，因为第 2、3 种可能开头的字符都是`<AdditiveExpression>`。
 
 对于第一个字符可能为 MultiplicativeExpression 的情况，结合前面我们的 MultiplicativeExpression 可以得到如下可能：
 
@@ -160,7 +160,7 @@ AdditiveExpression = MultiplicativeExpression + MultiplicativeExpression
 
 我们在生成 AST 之前，要先通过词法分析，将字符串中的有效 token 抽离出来，就像分析一个英语句子之前，先抽离出每个英文单词。
 
-我们最想想要得到如下的数据结构：
+我们期望得到如下的数据结构：
 
 ```javascript
 const tokens = [
@@ -285,7 +285,7 @@ regexp.exec(str); // null
 * input：被查找的字符串，在我们上面的例子中，input 的值就是 str。
 * groups
 
-> 其实之类还有个比较有意思的地方，就是数组可以添加额外的属性的，并且不会影响数组的长度。因为数组的本质也是对象。  
+> 其实这里还有个比较有意思的地方，就是数组可以添加额外的属性的，并且不会影响数组的长度。因为数组的本质也是对象。  
 
  **⚠️exec 的坑：**
  
@@ -324,7 +324,7 @@ const dictionary = [
 
 ```
 
-**这里需要注意，dictionary 数组中的每一项的类型要和正则表达式中的子表达式的位置一一对象，比如 NUMBER 就必须要子表达式 ([0-9\.]+) 的位置对应。**之所以要求一一对应，是因为后面我们需要通过索引去超找类型。
+**⚠️这里需要注意，dictionary 数组中的每一项的类型要和正则表达式中的子表达式的位置一一对象，比如 NUMBER 就必须要子表达式 ([0-9\.]+) 的位置对应。之所以要求一一对应，是因为后面我们需要通过索引去超找类型。**
 
 不断的去扫描表达式，找出 token：
 
