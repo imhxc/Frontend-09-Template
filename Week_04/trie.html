@@ -1,0 +1,55 @@
+<script>
+  let $ = Symbol('$'); // 避免字符串本身就支持 $ 
+  class Trie {
+    constructor () {
+      // 作为字典树的节点
+      // Object.create(null) 可以避免 prototype 上的污染
+      this.root = Object.create(null);
+    }
+    // insert: 把一个字符串插入字典树里面
+    insert(word) {
+      let node = this.root;
+      for (let c of word) {
+        if (!node[c]) {
+          node[c] = Object.create(null)
+        }
+        node = node[c];
+      }
+      if (!($ in node)) {
+        node[$] = 0;
+      }
+      node[$] ++;
+    }
+    most() {
+      let max = 0;
+      let maxWord = null;
+      let visit = (node, word) => {
+        if (node[$] && node[$] > max) {
+          max = node[$];
+          maxWord = word;
+        }
+        for (let p in node) {
+          // 每次访问将上一节点追加到 p 的前面
+          // 这样就可以获得一个完整的 word
+          visit(node[p], word + p);
+        }
+      }
+      visit(this.root, '');
+      console.log(maxWord, max);
+    }
+  }
+
+  function randomWord (length) {
+    let s = '';
+    for (let i = 0; i < length; i++) {
+      s += String.fromCharCode(Math.random() * 26 + 'a'.charCodeAt(0));
+    }
+    return s;
+  }
+
+  let trie = new Trie();
+
+  for (let i = 0; i < 100000; i++) {
+    trie.insert(randomWord(4));
+  }
+</script>
