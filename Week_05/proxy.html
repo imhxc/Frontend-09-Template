@@ -1,0 +1,85 @@
+<input id='r' type='range' min='0' max='255' />
+<input id='g' type='range' min='0' max='255' />
+<input id='b' type='range' min='0' max='255' />
+
+<div id='color' style='width: 100px; height: 100px;'></div>
+
+<script>
+
+  // callback 存储
+  let callbacks = new Map();
+
+  let reactives = new Map();
+
+  // 用于存储 get 时候的变量
+  let usedReactives = [];
+
+  let object = {
+    r: 1,
+    g: 1, 
+    b: 1,
+  };
+  let po = reactive(object);
+
+  effect(() => {
+    document.getElementById('r').value = po.r;
+    document.getElementById('g').value = po.g;
+    document.getElementById('b').value = po.b;
+    // console.log('effect: ', po.a.name)
+
+    document.getElementById('color').style.backgroundColor = `rgb(${po.r}, ${po.g}, ${po.b})`;
+  });
+
+  // 双向绑定
+  document.getElementById('r').addEventListener('input', event => po.r = event.target.value);
+  document.getElementById('g').addEventListener('input', event => po.g = event.target.value);
+  document.getElementById('b').addEventListener('input', event => po.b = event.target.value);
+
+
+  // 模拟 effect
+  function effect(callback) {
+    usedReactives = [];
+    callback();
+    console.log(usedReactives);
+    for (let reactivity of usedReactives) {
+      if (!callbacks.has(reactivity[0])) {
+        callbacks.set(reactivity[0], new Map());
+      } 
+      if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+        callbacks.get(reactivity[0]).set(reactivity[1], []);
+      }
+      callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+    }
+  }
+
+  // 模拟 vue reactive
+  function reactive(object) {
+    if (reactives.has(object)) {
+      return reactives.get(object);
+    }
+
+    let proxy = new Proxy(object, {
+      set(obj, prop, val) {
+        obj[prop] = val; // 设置了 set 后，需要手动的对 obj 进行赋值操作
+        if (callbacks.get(obj) && callbacks.get(obj).get(prop)) {
+          for (let cb of callbacks.get(obj).get(prop)) {
+            cb();
+          }
+        }
+        return obj[prop];
+      },
+      get(obj, prop) {
+        // 通过该函数，我们可以监听到函数调用时，使用了哪些变量（仅限于reactive，普通变量也无法被监听）
+        usedReactives.push([obj, prop]);
+        // 深度监听
+        if (typeof obj[prop] === 'object') {
+          return reactive(obj[prop]);
+        }
+        return obj[prop] // get 也是需要手动的返回值
+      }
+    });
+
+    reactives.set(object, proxy);
+    return proxy;
+  }
+</script>

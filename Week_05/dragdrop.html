@@ -1,0 +1,72 @@
+<div id='container' style='user-select: none;'></div>
+<div id='dragable' style='display: inline-block; width: 100px; height: 100px; background-color: rgb(255, 145, 0);'></div>
+
+<script>
+  const container = document.getElementById('container');
+
+  // 填充文字
+  container.innerText = Array(200).fill('文字').join(' ');
+
+  const dragable = document.getElementById('dragable');
+
+  let baseX = 0;
+  let baseY = 0;
+  let ranges = [];
+
+  dragable.addEventListener('mousedown', (event) => {
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+
+    // if (dragable.style.transform) {
+    //   // 获取 dragable 已有的 translate 值
+    //   // WebKitCSSMatrix 也是一种获取 translateX/Y 的方法，不过目前是一个实验中的功能
+    //   [baseX, baseY] = dragable.style.transform.replace(/[^0-9\-,]/g,'').split(',');
+    // }
+
+    let up = (event) => {
+      // 存储当前的 translate
+      baseX = baseX + event.clientX - startX;
+      baseY = baseY + event.clientY - startY;
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    }
+
+    let move = (event) => {
+      const range = getNearest(event.clientX, event.clientY);
+      range.insertNode(dragable);
+      // dragable.style.transform = `translate(${event.clientX - startX + baseX}px, ${event.clientY - startY + baseY}px)`;
+    }
+
+    // 为了防止鼠标移动过快，导致目标元素被 “拖断” 的现象
+    // 需要注意的一个细节是，在 document 上绑定的 mousemove 事件，
+    // 即使鼠标移出了浏览器外，也可以持续触发事件
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  
+
+  for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+    let range = document.createRange();
+    range.setStart(container.childNodes[0], i);
+    range.setEnd(container.childNodes[0], i);
+    ranges.push(range);
+  }
+
+  function getNearest(x, y) {
+    let min = Infinity;
+    let nearest = null;
+
+    for (let range of ranges) {
+      const rect = range.getBoundingClientRect();
+      // 计算 distance
+      const distance = (rect.x - x) ** 2 + (rect.y - y) ** 2;
+      if (distance < min) {
+        nearest = range;
+        min = distance;
+      }
+    }
+    return nearest;
+  }
+</script>
