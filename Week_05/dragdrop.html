@@ -1,11 +1,12 @@
-<div id='container' style='user-select: none;'></div>
-<div id='dragable' style='display: inline-block; width: 100px; height: 100px; background-color: rgb(255, 145, 0);'></div>
+<!-- 由于字符所占尺寸和  -->
+<div id='container' style='user-select: none; font-size: 18px; line-height: 32px;'></div>
+<div id='dragable' style='display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 145, 0);'></div>
 
 <script>
   const container = document.getElementById('container');
 
   // 填充文字
-  container.innerText = Array(200).fill('文字').join(' ');
+  container.innerText = Array(400).fill('文字').join(' ');
 
   const dragable = document.getElementById('dragable');
 
@@ -34,7 +35,7 @@
 
     let move = (event) => {
       const range = getNearest(event.clientX, event.clientY);
-      range.insertNode(dragable);
+      range.insertNode(dragable); 
       // dragable.style.transform = `translate(${event.clientX - startX + baseX}px, ${event.clientY - startY + baseY}px)`;
     }
 
